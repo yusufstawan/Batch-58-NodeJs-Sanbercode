@@ -2,16 +2,20 @@ import express from "express";
 
 import { single, multiple } from "./middlewares/upload.middleware";
 import { handleUpload } from "./utils/cloudinary";
+import { toDataURI } from "./utils/encode";
 
 const router = express.Router();
 
 router.post("/upload/single", single, async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).send("Please upload a file");
+    if (req?.file === undefined) {
+      return res.status(400).send({
+        message: "No file uploaded",
+        data: null,
+      });
     }
-    const result = await handleUpload(file.path);
+    const dataURI = toDataURI(req.file);
+    const result = await handleUpload(dataURI);
     res.send(result);
   } catch (error) {
     res.status(500).send(error);
@@ -20,14 +24,18 @@ router.post("/upload/single", single, async (req, res) => {
 
 router.post("/upload/multiple", multiple, async (req, res) => {
   try {
-    const files: any = req.files;
-    if (!files) {
-      return res.status(400).send("Please upload a file");
+    if (req.files === undefined || req.files?.length === 0) {
+      return res.status(400).send({
+        message: "No files uploaded",
+        data: null,
+      });
     }
-    const result = files.map((file: { path: string }) =>
-      handleUpload(file.path)
-    );
-    res.send(result);
+    const files = req.files as Express.Multer.File[];
+    const dataURIs = files
+      ?.map((file: Express.Multer.File) => toDataURI(file))
+      .map(handleUpload);
+    const results = await Promise.all(dataURIs);
+    res.send(results);
   } catch (error) {
     res.status(500).send(error);
   }
