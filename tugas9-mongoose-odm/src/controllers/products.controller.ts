@@ -1,10 +1,18 @@
 import { Request, Response } from "express";
 import ProductsModel from "@/models/products.model";
+import CategoriesModel from "@/models/categories.model";
 
 export default {
   async create(req: Request, res: Response) {
     try {
-      const result = await ProductsModel.create(req.body);
+      const category = await CategoriesModel.findOne({
+        _id: req.body.category,
+      });
+
+      const result = await ProductsModel.create({
+        ...req.body,
+        category: category,
+      });
       res.status(201).json({
         data: result,
         message: "Success create product",
