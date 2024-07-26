@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import CategoriesModel from "./categories.model";
 
 const Schema = mongoose.Schema;
 
@@ -28,7 +27,7 @@ const ProductsSchema = new Schema(
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CategoriesModel",
+      ref: "Categories",
     },
   },
   {
