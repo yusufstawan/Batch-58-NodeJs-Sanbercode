@@ -12,6 +12,12 @@ const createValidationSchema = Yup.object().shape({
   qty: Yup.number().required().min(1),
 });
 
+interface IPaginationQuery {
+  page: number;
+  limit: number;
+  search?: string;
+}
+
 export default {
   async create(req: Request, res: Response) {
     try {
@@ -39,10 +45,35 @@ export default {
   },
   async findAll(req: Request, res: Response) {
     try {
-      const result = await ProductsModel.find();
+      const {
+        limit = 10,
+        page = 1,
+        search = "",
+      } = req.query as unknown as IPaginationQuery;
+
+      const query = {};
+
+      if (search) {
+        Object.assign(query, {
+          name: { $regex: search, $options: "i" },
+        });
+      }
+
+      const result = await ProductsModel.find(query)
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .sort({ createdAt: -1 })
+        .populate("category");
+
+      const total = await ProductsModel.countDocuments(query);
+
       res.status(200).json({
         data: result,
         message: "Success get all products",
+        page: +page,
+        limit: +limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       const err = error as Error;
