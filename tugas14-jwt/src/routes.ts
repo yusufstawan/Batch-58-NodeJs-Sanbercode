@@ -1,9 +1,14 @@
 import express from "express";
 
+// middlewares
 import uploadMiddleware from "./middlewares/upload.middleware";
+import authMiddleware from "./middlewares/auth.middleware";
+
+// controllers
 import uploadController from "./controllers/upload.controller";
 import productsController from "./controllers/products.controller";
 import categoriesController from "./controllers/categories.controller";
+import authController from "./controllers/auth.controller";
 
 const router = express.Router();
 
@@ -20,6 +25,12 @@ router.post("/products", productsController.create);
 router.get("/products/:id", productsController.findOne);
 router.put("/products/:id", productsController.update);
 router.delete("/products/:id", productsController.delete);
+
+// auth
+router.post("/auth/login", authController.login);
+router.post("/auth/register", authController.register);
+router.get("/auth/me", authMiddleware, authController.me);
+router.put("/auth/profile", authMiddleware, authController.profile);
 
 router.post("/upload", uploadMiddleware.single, uploadController.single);
 router.post("/uploads", uploadMiddleware.multiple, uploadController.multiple);
