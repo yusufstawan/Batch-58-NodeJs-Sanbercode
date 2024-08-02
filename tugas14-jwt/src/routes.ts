@@ -9,6 +9,7 @@ import uploadController from "./controllers/upload.controller";
 import productsController from "./controllers/products.controller";
 import categoriesController from "./controllers/categories.controller";
 import authController from "./controllers/auth.controller";
+import aclMiddleware from "./middlewares/acl.middleware";
 
 const router = express.Router();
 
@@ -29,7 +30,11 @@ router.delete("/products/:id", productsController.delete);
 // auth
 router.post("/auth/login", authController.login);
 router.post("/auth/register", authController.register);
-router.get("/auth/me", authMiddleware, authController.me);
+router.get(
+  "/auth/me",
+  [authMiddleware, aclMiddleware(["admin"])],
+  authController.me
+);
 router.put("/auth/profile", authMiddleware, authController.profile);
 
 router.post("/upload", uploadMiddleware.single, uploadController.single);
